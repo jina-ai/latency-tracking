@@ -3,6 +3,7 @@ import os
 import time
 
 from jina import __version__
+from jina.clients.python.io import input_numpy
 
 success = True
 err_msg = ''
@@ -17,6 +18,7 @@ try:
     os.environ['RESOURCE_DIR'] = resource_filename('jina', 'resources')
     os.environ['SHARDS'] = str(4)
     os.environ['PARALLEL'] = str(4)
+    os.environ['REPLICAS'] = str(4)
     os.environ['HW_WORKDIR'] = 'workdir'
     os.environ['WITH_LOGSERVER'] = str(False)
     os.environ['OUTPUT_STATS'] = 'output/stats.json'
@@ -25,14 +27,14 @@ try:
 
     st = time.perf_counter()
     with f:
-        f.index_ndarray(load_mnist('original/index'), batch_size=1024)
+        f.index(input_numpy(load_mnist('original/index')), batch_size=1024)
     index_time = time.perf_counter() - st
 
     f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
 
     st = time.perf_counter()
     with f:
-        f.search_ndarray(load_mnist('original/query'), batch_size=1024, top_k=50)
+        f.search(input_numpy(load_mnist('original/query'), size=4096), batch_size=1024, top_k=50)
     query_time = time.perf_counter() - st
 except Exception as ex:
     err_msg = str(ex)
