@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 JINA_VERS=$(git ls-remote --tags https://github.com/jina-ai/jina.git "refs/tags/v*^{}" | cut -d'/' -f3 | cut -d'^' -f1 | cut -d'v' -f2 | sort -Vr)
 
