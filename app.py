@@ -15,8 +15,8 @@ try:
     from pkg_resources import resource_filename
 
     os.environ['RESOURCE_DIR'] = resource_filename('jina', 'resources')
-    os.environ['SHARDS'] = str(2)
-    os.environ['PARALLEL'] = str(2)
+    os.environ['SHARDS'] = str(4)
+    os.environ['PARALLEL'] = str(4)
     os.environ['HW_WORKDIR'] = 'workdir'
     os.environ['WITH_LOGSERVER'] = str(False)
     os.environ['OUTPUT_STATS'] = 'output/stats.json'
