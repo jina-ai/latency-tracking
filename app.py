@@ -81,21 +81,26 @@ def write_stats(stats, path='output/stats.json'):
     his = []
 
     if os.path.exists(path):
-        with open(path) as fp:
-            his = json.load(fp)
+        try:
+            with open(path) as fp:
+                his = json.load(fp)
+        except:
+            pass
 
     with open(path, 'w') as fp:
         his.append(stats)
-        cleaned = []
+        cleaned = {}
+
         for dd in his:
             # some versions may completely broken therefore they give unreasonably speed
             # but the truth is they are not indexing/querying accurately
             if 5000 > dd['index_qps'] > 0 and 1000 > dd['query_qps'] > 0:
-                cleaned.append(dd)
+                cleaned[dd['version']] = dd
             else:
                 print(f'{dd} is broken')
-        cleaned.sort(key=lambda x: version.Version(x['version']))
-        json.dump(cleaned, fp)
+        result = list(cleaned.values())
+        result.sort(key=lambda x: version.Version(x['version']))
+        json.dump(result, fp)
 
 
 if __name__ == '__main__':
