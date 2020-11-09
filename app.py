@@ -3,12 +3,12 @@ import os
 import time
 
 import numpy as np
-from packaging import version
+from packaging import version  # not built-in, need pip install
 
 
 def input_numpy(array: 'np.ndarray', axis: int = 0, size: int = None, shuffle: bool = False):
     """This function is in Jina since very early version, but it was at different places due to refactoring.
-    Copy-past here for compatibility
+    so I copy-paste here for compatibility
     """
     if shuffle:
         # shuffle for random query
@@ -37,13 +37,15 @@ def benchmark():
         index_time = -1
         query_time = -1
 
-        os.environ['RESOURCE_DIR'] = resource_filename('jina', 'resources')
-        os.environ['SHARDS'] = str(4)
-        os.environ['PARALLEL'] = str(4)  #
-        os.environ['REPLICAS'] = str(4)  # around 0.4 there was a renaming from replicas to parallel
-        os.environ['HW_WORKDIR'] = 'workdir'
-        os.environ['WITH_LOGSERVER'] = str(False)
+        for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
+                     'SHARDS': 4,
+                     'PARALLEL': 4,
+                     'REPLICAS': 4,
+                     'HW_WORKDIR': 'workdir',
+                     'WITH_LOGSERVER': False}.items():
+            os.environ[k] = str(v)
 
+        # do index
         f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.index.yml'))))
 
         st = time.perf_counter()
@@ -51,12 +53,14 @@ def benchmark():
             f.index(input_numpy(load_mnist('original/index')), batch_size=1024)
         index_time = time.perf_counter() - st
 
+        # do query
         f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
 
         st = time.perf_counter()
         with f:
             f.search(input_numpy(load_mnist('original/query'), size=query_size), batch_size=1024, top_k=50)
         query_time = time.perf_counter() - st
+
     except Exception as ex:
         # either the release is broken or the API has departed
         err_msg = repr(ex)
@@ -84,6 +88,8 @@ def write_stats(stats, path='output/stats.json'):
         his.append(stats)
         cleaned = []
         for dd in his:
+            # some versions may completely broken therefore they give unreasonably speed
+            # but the truth is they are not indexing/querying accurately
             if 5000 > dd['index_qps'] > 0 and 1000 > dd['query_qps'] > 0:
                 cleaned.append(dd)
             else:
