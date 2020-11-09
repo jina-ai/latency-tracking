@@ -13,12 +13,12 @@ docker build --build-arg JINA_VER=$JINA_VER . -t latency-tracking
 docker run -v $(pwd)/output:/workspace/output -v $(pwd)/original:/workspace/original latency-tracking
 ```
 
-## Run all versions
+## Run last `n` versions
 
 Require `jq` to be installed.
 
 ```bash
-bash batch.sh
+bash batch.sh 5
 ```
 
-This will run the version in reverse order, i.e. last release first.
+This will run the last 5 versions in reverse order, i.e. last release first.
