@@ -2,6 +2,8 @@
 
 Tracking `jina` index and query speed on `jina hello-world` over the history of releases.
 
+<img src=".github/container-env.png?raw=true" alt="Jina banner" width="50%">
+
 ## Run single version
 
 ```bash

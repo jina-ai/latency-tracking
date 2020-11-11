@@ -21,6 +21,21 @@ def input_numpy(array: 'np.ndarray', axis: int = 0, size: int = None, shuffle: b
             break
 
 
+def input_fn(fp, index=True, num_doc=None):
+    """This function is used before v0.2.2"""
+    from jina.helloworld.helper import load_mnist
+    img_data = load_mnist(fp)
+    if not index:
+        # shuffle for random query
+        img_data = np.take(img_data, np.random.permutation(img_data.shape[0]), axis=0)
+    d_id = 0
+    for r in img_data:
+        yield r.tobytes()
+        d_id += 1
+        if num_doc is not None and d_id > num_doc:
+            break
+
+
 def benchmark():
     try:
         # only these three imports are immutable from 0.1 upto now
@@ -30,7 +45,6 @@ def benchmark():
 
         from pkg_resources import resource_filename
 
-        success = True
         err_msg = ''
         index_size = 60000
         query_size = 4096
@@ -50,21 +64,28 @@ def benchmark():
 
         st = time.perf_counter()
         with f:
-            f.index(input_numpy(load_mnist('original/index')), batch_size=1024)
+            if version.Version(__version__) < version.Version('0.2.2'):
+                f.index(input_fn('original/index'), batch_size=1024)
+            else:
+                # Flow.index_numpy is not available in the early version
+                f.index(input_numpy(load_mnist('original/index')), batch_size=1024)
         index_time = time.perf_counter() - st
 
         # do query
         f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
 
-        st = time.perf_counter()
-        with f:
-            f.search(input_numpy(load_mnist('original/query'), size=query_size), batch_size=1024, top_k=50)
-        query_time = time.perf_counter() - st
+        if version.Version(__version__) < version.Version('0.2.2'):
+            pass
+        else:
+            st = time.perf_counter()
+            with f:
+                # Flow.search_numpy is not available in the early version
+                f.search(input_numpy(load_mnist('original/query'), size=query_size), batch_size=1024, top_k=50)
+            query_time = time.perf_counter() - st
 
     except Exception as ex:
         # either the release is broken or the API has departed
         err_msg = repr(ex)
-        success = False
 
     return {
         'version': __version__,
@@ -72,8 +93,7 @@ def benchmark():
         'query_time': query_time,
         'index_qps': index_size / index_time,
         'query_qps': query_size / query_time,
-        'error': err_msg,
-        'is_success': success
+        'error': err_msg
     }
 
 
