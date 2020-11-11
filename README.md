@@ -4,6 +4,8 @@ Tracking `jina` index and query speed on `jina hello-world` over the history of 
 
 <img src=".github/container-env.png?raw=true" alt="Jina banner" width="50%">
 
+Blog post: [Benchmark a Decentralized Search System on 79 Past Releases](https://hanxiao.io/2020/11/10/Optimizing-the-Overhead-of-a-Decentralized-Search-System/)
+
 ## Run single version
 
 ```bash
