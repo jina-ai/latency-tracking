@@ -2,7 +2,7 @@ import json
 
 from prettytable import MARKDOWN, PrettyTable
 
-with open('stats.json') as fp:
+with open('output/stats.json') as fp:
     d = json.load(fp)
 
 x = PrettyTable()
