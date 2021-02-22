@@ -50,6 +50,8 @@ def benchmark():
         query_size = 4096
         index_time = -1
         query_time = -1
+        
+        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
 
         for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
                      'SHARDS': 4,
