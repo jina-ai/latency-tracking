@@ -52,6 +52,7 @@ def benchmark():
         query_time = -1
         
         os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
+        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
 
         for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
                      'SHARDS': 4,
@@ -62,7 +63,8 @@ def benchmark():
             os.environ[k] = str(v)
 
         # do index
-        f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.index.yml'))))
+        #f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.index.yml'))))
+        f = Flow.load_config('helloworld.flow.index.yml')
 
         st = time.perf_counter()
         with f:
@@ -74,7 +76,8 @@ def benchmark():
         index_time = time.perf_counter() - st
 
         # do query
-        f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
+        #f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
+        f = Flow.load_config('helloworld.flow.query.yml')
 
         if version.Version(__version__) < version.Version('0.2.2'):
             pass
