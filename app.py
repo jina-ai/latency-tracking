@@ -41,7 +41,11 @@ def benchmark():
         # only these three imports are immutable from 0.1 upto now
         from jina import __version__
         from jina.flow import Flow
-        from jina.helloworld.helper import load_mnist
+        try: 
+            from jina.helloworld.fashion.helper import load_mnist
+        except:
+            from jina.helloworld.helper import load_mnist
+
 
         from pkg_resources import resource_filename
 
