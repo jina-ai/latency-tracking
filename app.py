@@ -1,57 +1,23 @@
+
 import json
 import os
 import time
 
-import numpy as np
 from packaging import version  # not built-in, need pip install
-
-
-def input_numpy(array: 'np.ndarray', axis: int = 0, size: int = None, shuffle: bool = False):
-    """This function is in Jina since very early version, but it was at different places due to refactoring.
-    so I copy-paste here for compatibility
-    """
-    if shuffle:
-        # shuffle for random query
-        array = np.take(array, np.random.permutation(array.shape[0]), axis=axis)
-    d = 0
-    for r in array:
-        yield r
-        d += 1
-        if size is not None and d >= size:
-            break
-
-
-def input_fn(fp, index=True, num_doc=None):
-    """This function is used before v0.2.2"""
-    from jina.helloworld.helper import load_mnist
-    img_data = load_mnist(fp)
-    if not index:
-        # shuffle for random query
-        img_data = np.take(img_data, np.random.permutation(img_data.shape[0]), axis=0)
-    d_id = 0
-    for r in img_data:
-        yield r.tobytes()
-        d_id += 1
-        if num_doc is not None and d_id > num_doc:
-            break
 
 
 def benchmark():
     try:
-        # only these three imports are immutable from 0.1 upto now
-        from jina import __version__
-        from jina.flow import Flow
-        try: 
-            from jina.helloworld.fashion.helper import load_mnist
-        except:
-            from jina.helloworld.helper import load_mnist
-
+        from jina import __version__, Flow
+        from jina.helloworld.fashion.helper import load_mnist
+        from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
+        from jina.types.document.generators import from_ndarray
 
         from pkg_resources import resource_filename
 
         err_msg = ''
         index_size = 60000
-        query_size = 4096
+        query_size = 10000
         index_time = -1
         query_time = -1
         
@@ -66,30 +32,26 @@ def benchmark():
                      'WITH_LOGSERVER': False}.items():
             os.environ[k] = str(v)
 
-        # do index
-        #f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.index.yml'))))
-        f = Flow.load_config('helloworld.flow.index.yml')
+        f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
 
-        st = time.perf_counter()
         with f:
-            if version.Version(__version__) < version.Version('0.2.2'):
-                f.index(input_fn('original/index'), batch_size=1024)
-            else:
-                # Flow.index_numpy is not available in the early version
-                f.index(input_numpy(load_mnist('original/index')), batch_size=1024)
-        index_time = time.perf_counter() - st
-
-        # do query
-        #f = Flow.load_config(resource_filename('jina', '/'.join(('resources', 'helloworld.flow.query.yml'))))
-        f = Flow.load_config('helloworld.flow.query.yml')
-
-        if version.Version(__version__) < version.Version('0.2.2'):
-            pass
-        else:
+            # do index
             st = time.perf_counter()
-            with f:
-                # Flow.search_numpy is not available in the early version
-                f.search(input_numpy(load_mnist('original/query'), size=query_size), batch_size=1024, top_k=50)
+            mnist_index = load_mnist('original/index')
+            data_index = from_ndarray(mnist_index)
+            f.index(data_index, request_size=1024)
+            index_time = time.perf_counter() - st
+
+            # do query
+            st = time.perf_counter()
+            mnist_query = load_mnist('original/query')
+            data_query = from_ndarray(mnist_query)
+            f.search(
+                data_query, 
+                shuffle=True,
+                request_size=query_size, 
+                parameters={'top_k':50}
+                )
             query_time = time.perf_counter() - st
 
     except Exception as ex:
@@ -129,7 +91,7 @@ def write_stats(stats, path='output/stats.json'):
                 print(f'{dd} is broken')
         result = list(cleaned.values())
         result.sort(key=lambda x: version.Version(x['version']))
-        json.dump(result, fp)
+        json.dump(result, fp, indent=2)
 
 
 if __name__ == '__main__':
