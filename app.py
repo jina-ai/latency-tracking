@@ -39,7 +39,7 @@ def benchmark():
             st = time.perf_counter()
             mnist_index = load_mnist('original/index')
             data_index = from_ndarray(mnist_index)
-            f.index(data_index, request_size=1024)
+            f.index(data_index, request_size=index_size)
             index_time = time.perf_counter() - st
 
             # do query
