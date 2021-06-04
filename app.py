@@ -17,7 +17,7 @@ def benchmark():
 
         err_msg = ''
         index_size = 60000
-        query_size = 4096
+        query_size = 10000
         index_time = -1
         query_time = -1
         
