@@ -17,7 +17,7 @@ def benchmark():
 
         err_msg = ''
         index_size = 60000
-        query_size = 10000
+        query_size = 4096
         index_time = -1
         query_time = -1
         
@@ -38,14 +38,14 @@ def benchmark():
             # do index
             st = time.perf_counter()
             mnist_index = load_mnist('original/index')
-            data_index = from_ndarray(mnist_index)
+            data_index = from_ndarray(mnist_index, size=index_size)
             f.index(data_index, request_size=1024)
             index_time = time.perf_counter() - st
 
             # do query
             st = time.perf_counter()
             mnist_query = load_mnist('original/query')
-            data_query = from_ndarray(mnist_query)
+            data_query = from_ndarray(mnist_query, size=query_size)
             f.search(
                 data_query, 
                 shuffle=True,
