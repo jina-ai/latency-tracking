@@ -11,6 +11,17 @@ from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
 from jina.types.document.generators import from_ndarray
 
 
+os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
+os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
+
+for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
+                'SHARDS': 4,
+                'PARALLEL': 4,
+                'REPLICAS': 4,
+                'HW_WORKDIR': 'workdir',
+                'WITH_LOGSERVER': False}.items():
+    os.environ[k] = str(v)
+
 err_msg = ''
 index_size = 60000
 query_size = 4096
@@ -20,17 +31,6 @@ query_time = -1
 
 def benchmark():
     try:
-        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
-        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
-
-        for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
-                     'SHARDS': 4,
-                     'PARALLEL': 4,
-                     'REPLICAS': 4,
-                     'HW_WORKDIR': 'workdir',
-                     'WITH_LOGSERVER': False}.items():
-            os.environ[k] = str(v)
-
         f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
 
         with f:
