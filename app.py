@@ -1,9 +1,14 @@
-
 import json
 import os
 import time
 
 from packaging import version  # not built-in, need pip install
+from pkg_resources import resource_filename
+
+from jina import __version__, Flow
+from jina.helloworld.fashion.helper import load_mnist
+from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
+from jina.types.document.generators import from_ndarray
 
 
 err_msg = ''
@@ -15,14 +20,6 @@ query_time = -1
 
 def benchmark():
     try:
-        from jina import __version__, Flow
-        from jina.helloworld.fashion.helper import load_mnist
-        from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
-        from jina.types.document.generators import from_ndarray
-
-        from pkg_resources import resource_filename
-
-        
         os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
         os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
 
@@ -51,7 +48,7 @@ def benchmark():
             f.search(
                 data_query, 
                 shuffle=True,
-                request_size=1024, 
+                request_size=256, 
                 parameters={'top_k':50}
                 )
             query_time = time.perf_counter() - st
