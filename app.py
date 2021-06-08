@@ -22,14 +22,14 @@ for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
                 'WITH_LOGSERVER': False}.items():
     os.environ[k] = str(v)
 
-err_msg = ''
-index_size = 60000
-query_size = 4096
-index_time = -1
-query_time = -1
-
 
 def benchmark():
+    err_msg = ''
+    index_size = 60000
+    query_size = 4096
+    index_time = -1
+    query_time = -1
+
     try:
         f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
 
