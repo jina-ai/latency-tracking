@@ -6,6 +6,13 @@ import time
 from packaging import version  # not built-in, need pip install
 
 
+err_msg = ''
+index_size = 60000
+query_size = 4096
+index_time = -1
+query_time = -1
+
+
 def benchmark():
     try:
         from jina import __version__, Flow
@@ -15,11 +22,6 @@ def benchmark():
 
         from pkg_resources import resource_filename
 
-        err_msg = ''
-        index_size = 60000
-        query_size = 4096
-        index_time = -1
-        query_time = -1
         
         os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
         os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
