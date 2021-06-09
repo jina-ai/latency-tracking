@@ -7,9 +7,12 @@ from pkg_resources import resource_filename
 
 from jina import __version__, Flow
 from jina.helloworld.fashion.helper import load_mnist
-from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
 from jina.types.document.generators import from_ndarray
 
+try: 
+    from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
+except:
+    from jina.helloworld.fashion.my_executors import MyEncoder, MyIndexer
 
 os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
 os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
