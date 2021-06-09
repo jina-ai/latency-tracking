@@ -1,6 +1,9 @@
+import sys
 import json
 
 from prettytable import MARKDOWN, PrettyTable
+
+num_last_release = sys.argv[1]
 
 with open('output/stats.json') as fp:
     d = json.load(fp)
@@ -44,8 +47,8 @@ else:
 
 summary = f'## Latency summary\n ' \
           f'Current PR yields:\n' \
-          f'  - {emoji_index} **index QPS** at `{index_qps}`, delta to last 3 avg.: `{delta_index:+d}%`\n' \
-          f'  - {emoji_query} **query QPS** at `{query_qps}`, delta to last 3 avg.: `{delta_query:+d}%`\n\n' \
+          f'  - {emoji_index} **index QPS** at `{index_qps}`, delta to last {num_last_release} avg.: `{delta_index:+d}%`\n' \
+          f'  - {emoji_query} **query QPS** at `{query_qps}`, delta to last {num_last_release} avg.: `{delta_query:+d}%`\n\n' \
           f'## Breakdown'
 
 print(summary)
