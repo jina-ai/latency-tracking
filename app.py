@@ -1,36 +1,37 @@
+
 import json
 import os
 import time
 
 from packaging import version  # not built-in, need pip install
-from pkg_resources import resource_filename
-
-from jina import __version__, Flow
-from jina.helloworld.fashion.helper import load_mnist
-from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
-from jina.types.document.generators import from_ndarray
-
-
-os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
-os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
-
-for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
-                'SHARDS': 4,
-                'PARALLEL': 4,
-                'REPLICAS': 4,
-                'HW_WORKDIR': 'workdir',
-                'WITH_LOGSERVER': False}.items():
-    os.environ[k] = str(v)
 
 
 def benchmark():
-    err_msg = ''
-    index_size = 60000
-    query_size = 4096
-    index_time = -1
-    query_time = -1
-
     try:
+        from jina import __version__, Flow
+        from jina.helloworld.fashion.helper import load_mnist
+        from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
+        from jina.types.document.generators import from_ndarray
+
+        from pkg_resources import resource_filename
+
+        err_msg = ''
+        index_size = 60000
+        query_size = 4096
+        index_time = -1
+        query_time = -1
+        
+        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
+        os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
+
+        for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
+                     'SHARDS': 4,
+                     'PARALLEL': 4,
+                     'REPLICAS': 4,
+                     'HW_WORKDIR': 'workdir',
+                     'WITH_LOGSERVER': False}.items():
+            os.environ[k] = str(v)
+
         f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
 
         with f:
@@ -48,7 +49,7 @@ def benchmark():
             f.search(
                 data_query, 
                 shuffle=True,
-                request_size=256, 
+                request_size=1024, 
                 parameters={'top_k':50}
                 )
             query_time = time.perf_counter() - st
