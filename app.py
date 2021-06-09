@@ -51,7 +51,7 @@ def benchmark():
             f.search(
                 data_query, 
                 shuffle=True,
-                request_size=256, 
+                request_size=1024, 
                 parameters={'top_k':50}
                 )
             query_time = time.perf_counter() - st
