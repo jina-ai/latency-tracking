@@ -1,8 +1,11 @@
 import json
 import os
 import shutil
-import sys
 import time
+import timeit
+
+# this line is needed here for measuring import time accurately
+import_time = timeit.timeit(stmt='import jina', number=1000000)
 
 from jina import Flow, __version__
 from jina.helloworld.fashion.helper import load_mnist
@@ -52,6 +55,7 @@ def benchmark():
 
     return {
         'version': __version__,
+        'import_time': import_time,
         'index_time': index_time,
         'query_time': query_time,
         'index_qps': index_size / index_time,
@@ -71,23 +75,22 @@ def write_stats(stats, path='output/stats.json'):
     try:
         with open(path) as fp:
             his = json.load(fp)
-    except:
-        pass
+        with open(path, 'w') as fp:
+            his.append(stats)
+            cleaned = {}
 
-    with open(path, 'w') as fp:
-        his.append(stats)
-        cleaned = {}
-
-        for dd in his:
-            # some versions may completely broken therefore they give unreasonably speed
-            # but the truth is they are not indexing/querying accurately
-            if 5000 > dd['index_qps'] > 0 and 1000 > dd['query_qps'] > 0:
-                cleaned[dd['version']] = dd
-            else:
-                print(f'{dd} is broken')
-        result = list(cleaned.values())
-        result.sort(key=lambda x: version.Version(x['version']))
-        json.dump(result, fp, indent=2)
+            for dd in his:
+                # some versions may completely broken therefore they give unreasonably speed
+                # but the truth is they are not indexing/querying accurately
+                if 5000 > dd['index_qps'] > 0 and 1000 > dd['query_qps'] > 0:
+                    cleaned[dd['version']] = dd
+                else:
+                    print(f'{dd} is broken')
+            result = list(cleaned.values())
+            result.sort(key=lambda x: version.Version(x['version']))
+            json.dump(result, fp, indent=2)
+    except Exception as e:
+        print(e)
 
 
 def cleanup():
@@ -110,13 +113,8 @@ def main():
                  'WITH_LOGSERVER': False}.items():
         os.environ[k] = str(v)
 
-    try:
-        write_stats(benchmark())
-        cleanup()
-    except Exception as e:
-        print(e)
-        cleanup()
-        sys.exit(1)
+    write_stats(benchmark())
+    cleanup()
 
 
 if __name__ == '__main__':
