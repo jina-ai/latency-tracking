@@ -1,29 +1,19 @@
 import json
 import os
+import shutil
+import sys
 import time
 
+from jina import Flow, __version__
+from jina.helloworld.fashion.helper import load_mnist
+from jina.types.document.generators import from_ndarray
 from packaging import version  # not built-in, need pip install
 from pkg_resources import resource_filename
 
-from jina import __version__, Flow
-from jina.helloworld.fashion.helper import load_mnist
-from jina.types.document.generators import from_ndarray
-
-try: 
+try:
     from jina.helloworld.fashion.executors import MyEncoder, MyIndexer
 except:
     from jina.helloworld.fashion.my_executors import MyEncoder, MyIndexer
-
-os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
-os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources') + '/fashion/'
-
-for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
-                'SHARDS': 4,
-                'PARALLEL': 4,
-                'REPLICAS': 4,
-                'HW_WORKDIR': 'workdir',
-                'WITH_LOGSERVER': False}.items():
-    os.environ[k] = str(v)
 
 
 def benchmark():
@@ -49,11 +39,11 @@ def benchmark():
             mnist_query = load_mnist('original/query')
             data_query = from_ndarray(mnist_query, size=query_size)
             f.search(
-                data_query, 
+                data_query,
                 shuffle=True,
-                request_size=1024, 
-                parameters={'top_k':50}
-                )
+                request_size=1024,
+                parameters={'top_k': 50}
+            )
             query_time = time.perf_counter() - st
 
     except Exception as ex:
@@ -73,12 +63,16 @@ def benchmark():
 def write_stats(stats, path='output/stats.json'):
     his = []
 
-    if os.path.exists(path):
-        try:
-            with open(path) as fp:
-                his = json.load(fp)
-        except:
-            pass
+    if not os.path.exists(path):
+        path_dir = os.path.split(path)[0]
+        if not os.path.exists(path_dir):
+            os.mkdir(path_dir)
+
+    try:
+        with open(path) as fp:
+            his = json.load(fp)
+    except:
+        pass
 
     with open(path, 'w') as fp:
         his.append(stats)
@@ -96,5 +90,34 @@ def write_stats(stats, path='output/stats.json'):
         json.dump(result, fp, indent=2)
 
 
+def cleanup():
+    cwd = os.getcwd()
+    my_indexer_dir = os.path.join(cwd, "MyIndexer")
+    if os.path.exists(my_indexer_dir):
+        shutil.rmtree(my_indexer_dir)
+
+
+def main():
+    os.environ['PATH'] += os.pathsep + resource_filename('jina', 'resources')
+    os.environ['PATH'] += os.pathsep + \
+        resource_filename('jina', 'resources') + '/fashion/'
+
+    for k, v in {'RESOURCE_DIR': resource_filename('jina', 'resources'),
+                 'SHARDS': 4,
+                 'PARALLEL': 4,
+                 'REPLICAS': 4,
+                 'HW_WORKDIR': 'workdir',
+                 'WITH_LOGSERVER': False}.items():
+        os.environ[k] = str(v)
+
+    try:
+        write_stats(benchmark())
+        cleanup()
+    except Exception as e:
+        print(e)
+        cleanup()
+        sys.exit(1)
+
+
 if __name__ == '__main__':
-    write_stats(benchmark())
+    main()

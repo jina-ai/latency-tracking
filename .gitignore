@@ -4,6 +4,9 @@
 # output directory
 output/
 
+# indexer directory
+MyIndexer/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
