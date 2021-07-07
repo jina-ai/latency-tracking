@@ -5,9 +5,10 @@ FROM jinaai/jina:$JINA_VER
 WORKDIR workspace/
 
 ADD app.py ./
+ADD requirements.txt ./
 
-# for comparing versions
-RUN pip install packaging
+# install dependencies
+RUN pip install -r requirements.txt
 
 # run benchmark
 ENTRYPOINT ["python", "app.py"]
