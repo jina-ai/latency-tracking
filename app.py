@@ -5,6 +5,7 @@ import shutil
 import sys
 import time
 import timeit
+from typing import Dict
 
 import scipy.sparse as sp
 
@@ -27,7 +28,7 @@ except:
 log = logging.getLogger(__name__)
 
 
-def _benchmar_import_time() -> dict[str, float]:
+def _benchmark_import_time() -> Dict[str, float]:
     """Benchmark Jina Core import time for 1M imports.
 
     Returns:
@@ -36,11 +37,11 @@ def _benchmar_import_time() -> dict[str, float]:
     TODO: Figure out How we can measure the import time within a function.
     """
     return {
-        'import_time': import_time
+        'import_time': float(import_time)
     }
 
 
-def _benchmar_flows() -> dict[str, str]:
+def _benchmar_flows() -> Dict[str, None]:
     # TODO
     fs = [
         Flow(),
@@ -57,7 +58,7 @@ def _benchmar_flows() -> dict[str, str]:
     }
 
 
-def _benchmark_qps() -> dict[str, str]:
+def _benchmark_qps() -> Dict[str, float]:
     """Benchmark Jina Core Indexing and Query.
 
     Returns:
@@ -65,8 +66,6 @@ def _benchmark_qps() -> dict[str, str]:
     """
     index_size = 60000
     query_size = 4096
-    index_time = -1
-    query_time = -1
 
     try:
         f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
@@ -103,7 +102,7 @@ def _benchmark_qps() -> dict[str, str]:
     }
 
 
-def benchmark() -> dict[str, str]:
+def benchmark() -> Dict[str, str]:
     """Merge all benchmark results and return final stats.
 
     Returns:
@@ -112,13 +111,13 @@ def benchmark() -> dict[str, str]:
     stats = {
         'version': __version__
     }
-    stats.update(_benchmar_import_time())
+    stats.update(_benchmark_import_time())
     stats.update(_benchmark_qps())
 
     return stats
 
 
-def write_stats(stats: dict[str, str], path: str = 'output/stats.json') -> None:
+def write_stats(stats: Dict[str, str], path: str = 'output/stats.json') -> None:
     """Write stats to a JSON file.
 
     Args:

@@ -7,7 +7,7 @@ WORKDIR workspace/
 ADD app.py ./
 
 # for comparing versions
-RUN pip install packaging
+RUN pip install packaging scipy
 
 # run benchmark
 ENTRYPOINT ["python", "app.py"]
