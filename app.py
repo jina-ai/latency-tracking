@@ -7,15 +7,14 @@ import time
 import timeit
 from typing import Dict
 
-import scipy.sparse as sp
-
 # this line is needed here for measuring import time accurately for 1M imports
 import_time = timeit.timeit(stmt='import jina', number=1000000)
 
 from jina import Document, Flow, __version__
+from jina.types.arrays.memmap import DocumentArrayMemmap
 from jina.helloworld.fashion.helper import load_mnist
 from jina.types.document.generators import from_ndarray
-from packaging import version  # not built-in, need pip install
+from packaging import version
 from pkg_resources import resource_filename
 
 try:
@@ -41,20 +40,41 @@ def _benchmark_import_time() -> Dict[str, float]:
     }
 
 
-def _benchmar_flows() -> Dict[str, None]:
-    # TODO
-    fs = [
-        Flow(),
-        Flow().add(),
-        Flow().add().add(),
-        Flow().add().add(needs='gateway')]
-
-    for f in fs:
-        f.post('/', (Document() for _ in range(10000)))
-        f.post('/', (Document(blob=sp.coo_matrix([0, 0, 0, 1, 0])) for _ in range(10000)))
+def _benchmark_avg_flow_time() -> Dict[str, float]:
+    """Benchmark on a simple flow operation.
+    
+    Reurns:
+        A dict mapping of import time in seconds as float number.
+    """
+    f = Flow().add().add().add()
+    st = time.perf_counter()
+    with f:
+        f.post(on='/test', inputs=Document())
+    avg_flow_time = time.perf_counter() - st
 
     return {
-        'flows_time': None
+        'avg_flow_time': avg_flow_time
+    }
+
+
+def _benchmark_dam_extend() -> Dict[str, float]:
+    """Benchmark on adding 1M documents to DocumentArrayMemmap.
+    
+    Returns:
+        A dict mapping of dam extend time in seconds as float number.
+    """
+    dlist = []
+    dam = DocumentArrayMemmap(os.path.join(os.getcwd(), 'MyMemMap'))
+
+    for i in range(0, 1000000):
+        dlist.append(Document(text=f'This is the document number: {i}', ))
+
+    st = time.perf_counter()
+    dam.extend(dlist)
+    dam_extend_time = time.perf_counter() - st
+
+    return {
+        'dam_extend_time': dam_extend_time
     }
 
 
@@ -112,6 +132,8 @@ def benchmark() -> Dict[str, str]:
         'version': __version__
     }
     stats.update(_benchmark_import_time())
+    stats.update(_benchmark_dam_extend())
+    stats.update(_benchmark_avg_flow_time())
     stats.update(_benchmark_qps())
 
     return stats
@@ -160,8 +182,13 @@ def cleanup() -> None:
     # Do the cleanup at the end of this script.
     cwd = os.getcwd()
     my_indexer_dir = os.path.join(cwd, "MyIndexer")
+    my_mem_map = os.path.join(cwd, 'MyMemMap')
+
     if os.path.exists(my_indexer_dir):
         shutil.rmtree(my_indexer_dir)
+
+    if os.path.exists(my_mem_map):
+        shutil.rmtree(my_mem_map)
 
 
 def main() -> None:
