@@ -46,27 +46,35 @@ def _benchmark_avg_flow_time() -> Dict[str, float]:
     Reurns:
         A dict mapping of import time in seconds as float number.
     """
-    f = Flow().add().add().add()
+    fs = [
+        Flow().add(),
+        Flow().add().add(),
+        Flow().add().add().add(),
+        Flow().add().add().add(needs='gateway')
+    ]
     st = time.perf_counter()
-    with f:
-        f.post(on='/test', inputs=Document())
-    avg_flow_time = time.perf_counter() - st
+    for f in fs:
+        with f:
+            f.post(on='/test', inputs=Document())
+    flow_time = time.perf_counter() - st
+    avg_flow_time = flow_time / len(fs)
 
     return {
         'avg_flow_time': avg_flow_time
     }
 
 
-def _benchmark_dam_extend() -> Dict[str, float]:
+def _benchmark_dam_extend_qps() -> Dict[str, float]:
     """Benchmark on adding 1M documents to DocumentArrayMemmap.
     
     Returns:
         A dict mapping of dam extend time in seconds as float number.
     """
     dlist = []
+    dam_size = 1000000
     dam = DocumentArrayMemmap(os.path.join(os.getcwd(), 'MyMemMap'))
 
-    for i in range(0, 1000000):
+    for i in range(0, dam_size):
         dlist.append(Document(text=f'This is the document number: {i}', ))
 
     st = time.perf_counter()
@@ -74,7 +82,8 @@ def _benchmark_dam_extend() -> Dict[str, float]:
     dam_extend_time = time.perf_counter() - st
 
     return {
-        'dam_extend_time': dam_extend_time
+        'dam_extend_time': dam_extend_time,
+        'dam_extend_qps': dam_size / dam_extend_time
     }
 
 
@@ -132,7 +141,7 @@ def benchmark() -> Dict[str, str]:
         'version': __version__
     }
     stats.update(_benchmark_import_time())
-    stats.update(_benchmark_dam_extend())
+    stats.update(_benchmark_dam_extend_qps())
     stats.update(_benchmark_avg_flow_time())
     stats.update(_benchmark_qps())
 
