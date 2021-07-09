@@ -27,6 +27,12 @@ except:
 log = logging.getLogger(__name__)
 
 
+def __doc_generator():
+    # Document generator
+    for i in range(1000):
+        yield Document(text=f'This is the document number: {i}', )
+
+
 def _benchmark_import_time() -> Dict[str, float]:
     """Benchmark Jina Core import time for 1M imports.
 
@@ -55,7 +61,7 @@ def _benchmark_avg_flow_time() -> Dict[str, float]:
     st = time.perf_counter()
     for f in fs:
         with f:
-            f.post(on='/test', inputs=Document())
+            f.post(on='/', inputs=__doc_generator, request_size=10)
     flow_time = time.perf_counter() - st
     avg_flow_time = flow_time / len(fs)
 
@@ -74,7 +80,7 @@ def _benchmark_dam_extend_qps() -> Dict[str, float]:
     dam_size = 1000000
     dam = DocumentArrayMemmap(os.path.join(os.getcwd(), 'MyMemMap'))
 
-    for i in range(0, dam_size):
+    for i in range(dam_size):
         dlist.append(Document(text=f'This is the document number: {i}', ))
 
     st = time.perf_counter()
