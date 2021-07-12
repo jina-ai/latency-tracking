@@ -11,9 +11,9 @@ from typing import Dict
 import_time = timeit.timeit(stmt='import jina', number=1000000)
 
 from jina import Document, Flow, __version__
+from jina.helloworld.fashion.helper import (index_generator, load_labels,
+                                            load_mnist, query_generator)
 from jina.types.arrays.memmap import DocumentArrayMemmap
-from jina.helloworld.fashion.helper import load_mnist
-from jina.types.document.generators import from_ndarray
 from packaging import version
 from pkg_resources import resource_filename
 
@@ -48,7 +48,7 @@ def _benchmark_import_time() -> Dict[str, float]:
 
 def _benchmark_avg_flow_time() -> Dict[str, float]:
     """Benchmark on a simple flow operation.
-    
+
     Reurns:
         A dict mapping of import time in seconds as float number.
     """
@@ -72,7 +72,7 @@ def _benchmark_avg_flow_time() -> Dict[str, float]:
 
 def _benchmark_dam_extend_qps() -> Dict[str, float]:
     """Benchmark on adding 1M documents to DocumentArrayMemmap.
-    
+
     Returns:
         A dict mapping of dam extend time in seconds as float number.
     """
@@ -99,8 +99,32 @@ def _benchmark_qps() -> Dict[str, float]:
     Returns:
         A dict mapping keys
     """
-    index_size = 60000
-    query_size = 4096
+    num_docs = 60000
+    num_query = 4096
+    request_size = 1024
+    top_k = 50
+    cwd = os.path.join(os.getcwd(), 'original')
+
+    targets = {
+        'index-labels': {
+            'filename': os.path.join(cwd, 'index-labels'),
+        },
+        'query-labels': {
+            'filename': os.path.join(cwd, 'query-labels'),
+        },
+        'index': {
+            'filename': os.path.join(cwd, 'index-original'),
+        },
+        'query': {
+            'filename': os.path.join(cwd, 'query-original'),
+        },
+    }
+
+    for k, v in targets.items():
+        if k == 'index-labels' or k == 'query-labels':
+            v['data'] = load_labels(v['filename'])
+        if k == 'index' or k == 'query':
+            v['data'] = load_mnist(v['filename'])
 
     try:
         f = Flow().add(uses=MyEncoder).add(uses=MyIndexer)
@@ -108,20 +132,19 @@ def _benchmark_qps() -> Dict[str, float]:
         with f:
             # do index
             st = time.perf_counter()
-            mnist_index = load_mnist('original/index')
-            data_index = from_ndarray(mnist_index, size=index_size)
-            f.index(data_index, request_size=1024)
+            f.index(
+                index_generator(num_docs=num_docs, target=targets),
+                request_size=request_size
+            )
             index_time = time.perf_counter() - st
 
             # do query
             st = time.perf_counter()
-            mnist_query = load_mnist('original/query')
-            data_query = from_ndarray(mnist_query, size=query_size)
             f.search(
-                data_query,
+                query_generator(num_docs=num_query, target=targets),
                 shuffle=True,
-                request_size=1024,
-                parameters={'top_k': 50}
+                request_size=request_size,
+                parameters={'top_k': top_k}
             )
             query_time = time.perf_counter() - st
 
@@ -132,8 +155,8 @@ def _benchmark_qps() -> Dict[str, float]:
     return {
         'index_time': index_time,
         'query_time': query_time,
-        'index_qps': index_size / index_time,
-        'query_qps': query_size / query_time,
+        'index_qps': num_docs / index_time,
+        'query_qps': num_query / query_time,
     }
 
 
@@ -184,7 +207,7 @@ def write_stats(stats: Dict[str, str], path: str = 'output/stats.json') -> None:
                 if 5000 > dd['index_qps'] > 0 and 1000 > dd['query_qps'] > 0:
                     cleaned[dd['version']] = dd
                 else:
-                    log.warn(f'{dd} is broken')
+                    log.warning(f'{dd} is broken')
             result = list(cleaned.values())
             result.sort(key=lambda x: version.Version(x['version']))
             json.dump(result, fp, indent=2)
