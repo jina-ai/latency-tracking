@@ -2,10 +2,9 @@ ARG JINA_VER
 
 FROM jinaai/jina:$JINA_VER
 
-WORKDIR workspace/
+WORKDIR /app
 
-ADD app.py ./
-ADD requirements.txt ./
+ADD scripts/latency-tracking .
 
 # install dependencies
 RUN pip install -r requirements.txt
