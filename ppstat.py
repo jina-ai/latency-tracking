@@ -1,10 +1,11 @@
 import json
+import os
 import sys
 
 from prettytable import MARKDOWN, PrettyTable
 
 num_last_release = sys.argv[1]
-stats_file = sys.argv[2] or 'output/stats.json'
+stats_file = sys.argv[2] or '/var/output/stats.json'
 
 with open(stats_file) as fp:
     d = json.load(fp)
