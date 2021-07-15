@@ -17,9 +17,9 @@ Blog post: [Benchmark a Decentralized Search System on 79 Past Releases](https:/
 This repo can't produce benchmark results independently as it works in accordance with [scripts/latency-tracking](https://github.com/jina-ai/jina/blob/master/scripts/latency-tracking) from [Jina Core](https://github.com/jina-ai/jina). So, let's prepare the envrionment at first.
 
 ```bash
-$ git clone git@github.com:jina-ai/jina.git
-$ cd jina
-$ git clone https://github.com/jina-ai/latency-tracking latency
+git clone git@github.com:jina-ai/jina.git
+cd jina
+git clone https://github.com/jina-ai/latency-tracking latency
 ```
 
 ## Run single version
