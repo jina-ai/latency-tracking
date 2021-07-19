@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-mkdir output
+mkdir -p output
 
 for file in benchmarks/*.py; do
     output_json=$(echo $file | sed -r 's/.py/.json/g' | sed -r 's/benchmarks/output/g')
