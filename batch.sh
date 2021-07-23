@@ -10,7 +10,7 @@ do
 	if [[ $DONE_VERS =~ (^|[[:space:]])$VER($|[[:space:]]) ]]; then
       echo "$VER has been benchmarked, skip!"
     else
-      docker build --build-arg JINA_VER=$VER -f latency/Dockerfile -t latency-tracking .
+      docker build --build-arg JINA_VER=$VER -f latency/dockerfiles/Dockerfile -t latency-tracking .
       docker run -v /var/output:/app/output latency-tracking
   fi
 done
