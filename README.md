@@ -45,21 +45,3 @@ bash latency/batch.sh 5
 ```
 
 This will run the last 5 versions in reverse order, i.e. last release first.
-
-## Resource Benchmarking
-
-To do the resource benchmarking (CPU & Memory usage) of Jina features, you can use `benchmark.sh` file. This file actually benchmark files under `benchmark` directory with [cmdbench](https://github.com/manzik/cmdbench) utility tool
-
-### Run Locally
-
-```bash
-bash -x benchmark.sh
-```
-
-Or,
-
-```bash
-JINA_VER=master
-docker build --build-arg JINA_VER=$JINA_VER -f dockerfiles/Dockerfile.benchmark -t bechmark .
-docker run -v $(pwd):/app bechmark:latest
-```
